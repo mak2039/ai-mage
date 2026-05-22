@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>پیشرفته‌ترین ساخت عکس با هوش مصنوعی</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-gradient-start: #1e1e2f;
+            --bg-gradient-end: #2a2a40;
+            --card-bg: rgba(255,255,255,0.1);
+            --text-color: white;
+            --accent-color: #ffd966;
+            --accent-gradient: linear-gradient(135deg, #ffd966, #ffb347);
+            --border-color: rgba(255,255,255,0.2);
+            --input-bg: rgba(255,255,255,0.15);
+            --error-bg: rgba(255,80,80,0.3);
+        }
+
+        body.dark {
+            --bg-gradient-start: #1e1e2f;
+            --bg-gradient-end: #2a2a40;
+            --card-bg: rgba(255,255,255,0.1);
+            --text-color: white;
+            --input-bg: rgba(255,255,255,0.15);
+        }
+
+        body.light {
+            --bg-gradient-start: #f0f0f5;
+            --bg-gradient-end: #e0e0e8;
+            --card-bg: white;
+            --text-color: #1e1e2f;
+            --accent-color: #e6a800;
+            --accent-gradient: linear-gradient(135deg, #ffb347, #ff8c00);
+            --border-color: #ddd;
+            --input-bg: #f5f5f5;
+            --error-bg: rgba(255,80,80,0.1);
+        }
+
+        body {
+            font-family: 'Tahoma', 'Vazir', sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            min-height: 100vh;
+            transition: all 0.3s;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 15px 25px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            color: var(--accent-color);
+            font-size: 24px;
+        }
+
+        .theme-toggle {
+            background: var(--accent-gradient);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Main Card */
+        .main-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: var(--accent-color);
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            background: var(--card-bg);
+            box-shadow: 0 0 10px rgba(255,217,102,0.5);
+            border: 1px solid var(--accent-color);
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* Suggested Prompts */
+        .suggestions {
+            margin: 20px 0;
+        }
+
+        .suggestions-title {
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .suggestions-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .suggestion-btn {
+            background: rgba(255,217,102,0.2);
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .suggestion-btn:hover {
+            background: var(--accent-color);
+            color: #1e1e2f;
+        }
+
+        /* Size & Quality */
+        .row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .row .input-group {
+            flex: 1;
+        }
+
+        button {
+            background: var(--accent-gradient);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e1e2f;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            margin: 30px 0;
+            display: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,217,102,0.3);
+            border-top: 5px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Result */
+        .result {
+            margin-top: 30px;
+            text-align: center;
+            display: none;
+        }
+
+        .result img {
+            max-width: 100%;
+            max-height: 512px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            margin-bottom: 15px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .action-btn {
+            width: auto;
+            background: rgba(255,255,255,0.2);
+            color: var(--accent-color);
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        .favorite-btn {
+            background: rgba(255,80,80,0.3);
+            color: #ff8080;
+        }
+
+        .favorite-btn.active {
+            background: #ff5050;
+            color: white;
+        }
+
+        /* History Section */
+        .history-section, .favorites-section {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            color: var(--accent-color);
+            margin-bottom: 15px;
+            font-size: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .history-grid, .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .history-item, .favorite-item {
+            position: relative;
+            cursor: pointer;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .history-item:hover, .favorite-item:hover {
+            transform: scale(1.05);
+        }
+
+        .history-item img, .favorite-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .history-item .prompt-text, .favorite-item .prompt-text {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            font-size: 10px;
+            padding: 5px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255,80,80,0.9);
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: rgba(255,255,255,0.5);
+            padding: 30px;
+        }
+
+        .error {
+            background: var(--error-bg);
+            border: 1px solid #ff5050;
+            border-radius: 15px;
+            padding: 15px;
+            color: #ffaaaa;
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .info {
+            text-align: center;
+            color: rgba(255,255,255,0.5);
+            font-size: 12px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-card { padding: 20px; }
+            .row { flex-direction: column; }
+            .history-grid, .favorites-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🎨 ساخت عکس با هوش مصنوعی حرفه‌ای</h1>
+        <button class="theme-toggle" onclick="toggleTheme()">🌙 حالت تاریک</button>
+    </div>
+
+    <div class="main-card">
+        <div class="input-group">
+            <label>📝 توضیح عکس (فارسی یا انگلیسی):</label>
+            <textarea id="prompt" rows="3" placeholder="مثال: یک بازیگر کرهای با لباس قرمز در شب بارانی، سینمایی، 4K"></textarea>
+        </div>
+
+        <!-- پیشنهادات سریال کرهای -->
+        <div class="suggestions">
+            <div class="suggestions-title">🎬 پیشنهادات سریال‌های کرهای (کلیک کنید):</div>
+            <div class="suggestions-grid" id="suggestionsGrid"></div>
+        </div>
+
+        <div class="row">
+            <div class="input-group">
+                <label>🎨 سبک عکس:</label>
+                <select id="style">
+                    <option value="">طبیعی (پیش‌فرض)</option>
+                    <option value="cinematic">سینمایی</option>
+                    <option value="anime">انیمه</option>
+                    <option value="painting">نقاشی</option>
+                    <option value="realistic">واقع‌گرایانه</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>📐 نسبت ابعاد:</label>
+                <select id="aspect">
+                    <option value="1:1">مربع (1:1) - اینستاگرام</option>
+                    <option value="16:9">عریض (16:9) - یوتیوب/تلویزیون</option>
+                    <option value="9:16">عمودی (9:16) - استوری/موبایل</option>
+                    <option value="4:3">کلاسیک (4:3)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>📐 اندازه (کیفیت):</label>
+                <select id="size">
+                    <option value="512">۵۱۲×۵۱۲ (سریع)</option>
+                    <option value="1024">۱۰۲۴×۱۰۲۴ (کیفیت بالا)</option>
+                </select>
+            </div>
+        </div>
+
+        <button id="generateBtn">✨ ساخت عکس ✨</button>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>در حال ساخت عکس با هوش مصنوعی...</div>
+            <div style="font-size:12px; margin-top:8px;">چند ثانیه صبر کنید</div>
+        </div>
+
+        <div class="result" id="result">
+            <img id="resultImg" alt="عکس ساخته شده">
+            <div class="action-buttons">
+                <button class="action-btn" id="downloadJpgBtn">📥 دانلود JPG</button>
+                <button class="action-btn" id="downloadPngBtn">📥 دانلود PNG</button>
+                <button class="action-btn" id="shareBtn">📤 اشتراک‌گذاری</button>
+                <button class="action-btn favorite-btn" id="favoriteBtn">❤️ ذخیره در علاقه‌مندی‌ها</button>
+            </div>
+        </div>
+
+        <div class="error" id="error"></div>
+    </div>
+
+    <!-- علاقه‌مندی‌ها -->
+    <div class="favorites-section">
+        <div class="section-title">
+            ⭐ علاقه‌مندی‌های من
+            <button class="action-btn" onclick="clearFavorites()" style="width:auto; padding:5px 15px;">🗑️ حذف همه</button>
+        </div>
+        <div class="favorites-grid" id="favoritesGrid">
+            <div class="empty-message">هنوز عکسی به علاقه‌مندی‌ها اضافه نکرده‌اید</div>
+        </div>
+    </div>
+
+    <!-- تاریخچه -->
+    <div class="history-section">
+        <div class="section-title">
+            📂 تاریخچه عکس‌های ساخته شده
+            <button class="action-btn" onclick="clearHistory()" style="width:auto; padding:5px 15px;">🗑️ پاک کردن تاریخچه</button>
+        </div>
+        <div class="history-grid" id="historyGrid">
+            <div class="empty-message">هنوز عکسی نساخته‌اید</div>
+        </div>
+    </div>
+
+    <div class="info">
+        💡 توی متن توضیح می‌تونید شخصیت سریال، صحنه، لباس، احساسات و هرچیزی که دوست دارید بنویسید.<br>
+        🔄 این سرویس کاملاً رایگان است و بدون نیاز به ثبت‌نام کار می‌کند.<br>
+        ⭐ می‌توانید عکس‌های مورد علاقه خود را ذخیره کنید و از تاریخچه به عکس‌های قبلی دسترسی داشته باشید.
+    </div>
+</div>
+
+<script>
+    // ============ دیتا و متغیرها ============
+    let currentImageUrl = '';
+    currentPrompt = '';
+    let history = JSON.parse(localStorage.getItem('imageHistory') || '[]');
+    let favorites = JSON.parse(localStorage.getItem('imageFavorites') || '[]');
+
+    // پیشنهادات سریال کرهای
+    const kdramaPrompts = [
+        "کیم سو هیون در نقش آرتا، نگاه جدی، کت و شلوار مشکی",
+        "بازیگر زن کرهای گریان در باران، غمگین، سینمایی",
+        "صحنه عاشقانه در سئول، شب، چراغ‌های نئون",
+        "دختر کرهای با لباس عروس سنتی هانبوک، زیبا",
+        "بازیگر مرد کرهای خندان، خوشتیپ، مو مدرن",
+        "رستوران کرهای شب، فضای گرم و صمیمی، غذاهای خوشمزه",
+        "جنگجوی کرهای با شمشیر، صحنه اکشن، باران",
+        "مدرسه کرهای، دانش‌آموزان با لباس فرم، حیاط مدرسه",
+        "کافه کرهای دنج، نور گرم، فضای آرام",
+        "کارآگاه کرهای در شب بارانی، کت بارانی، شهر سئول"
+    ];
+
+    // ============ تابع تبدیل نسبت ابعاد به عرض و ارتفاع ============
+    function getDimensions(aspect, baseSize) {
+        let width, height;
+        switch(aspect) {
+            case '1:1': width = baseSize; height = baseSize; break;
+            case '16:9': width = baseSize; height = Math.round(baseSize * 9/16); break;
+            case '9:16': width = Math.round(baseSize * 9/16); height = baseSize; break;
+            case '4:3': width = baseSize; height = Math.round(baseSize * 3/4); break;
+            default: width = baseSize; height = baseSize;
+        }
+        return { width, height };
+    }
+
+    // ============ ساخت عکس ============
+    async function generateImage() {
+        let prompt = document.getElementById('prompt').value.trim();
+        if (!prompt) {
+            showError('لطفاً توضیح عکس را بنویسید!');
+            return;
+        }
+
+        // ذخیره پرامپت جاری
+        currentPrompt = prompt;
+
+        // اضافه کردن سبک
+        const style = document.getElementById('style').value;
+        let finalPrompt = prompt;
+        if (style === 'cinematic') finalPrompt = `${prompt}, cinematic lighting, movie scene, 4k, dramatic`;
+        else if (style === 'anime') finalPrompt = `${prompt}, anime style, studio ghibli, vibrant colors`;
+        else if (style === 'painting') finalPrompt = `${prompt}, oil painting, artistic, brush strokes, masterpiece`;
+        else if (style === 'realistic') finalPrompt = `${prompt}, photorealistic, 8k, ultra detailed, canon r5`;
+
+        const aspect = document.getElementById('aspect').value;
+        const size = parseInt(document.getElementById('size').value);
+        const dimensions = getDimensions(aspect, size);
+        
+        // مخفی کردن نتیجه قبلی
+        document.getElementById('result').style.display = 'none';
+        document.getElementById('error').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('generateBtn').disabled = true;
+
+        // ساخت URL با ابعاد دلخواه
+        // Pollinations از پارامترهای width و height پشتیبانی می‌کند
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=${dimensions.width}&height=${dimensions.height}&nologo=true`;
+        currentImageUrl = imageUrl;
+        
+        // پیش‌بارگذاری عکس
+        const img = new Image();
+        img.onload = function() {
+            document.getElementById('resultImg').src = currentImageUrl;
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('generateBtn').disabled = false;
+            saveToHistory(imageUrl, prompt, dimensions);
+            renderHistory();
+            renderFavorites();
+        };
+        img.onerror = function() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('generateBtn').disabled = false;
+            showError('خطا در ساخت عکس. لطفاً دوباره تلاش کنید یا متن دیگری بنویسید.');
+        };
+        img.src = imageUrl;
+    }
+
+    // ============ ذخیره در تاریخچه ============
+    function saveToHistory(url, prompt, dimensions) {
+        history.unshift({
+            url: url,
+            prompt: prompt,
+            date: new Date().toLocaleString('fa-IR'),
+            dimensions: dimensions
+        });
+        // نگهداری حداکثر ۵۰ تاریخچه
+        if (history.length > 50) history.pop();
+        localStorage.setItem('imageHistory', JSON.stringify(history));
+    }
+
+    // ============ نمایش تاریخچه ============
+    function renderHistory() {
+        const grid = document.getElementById('historyGrid');
+        if (!history.length) {
+            grid.innerHTML = '<div class="empty-message">هنوز عکسی نساخته‌اید</div>';
+            return;
+        }
+        grid.innerHTML = history.map((item, index) => `
+            <div class="history-item" onclick="loadFromHistory(${index})">
+                <img src="${item.url}" alt="تاریخچه">
+                <div class="prompt-text">${item.prompt.substring(0, 30)}...</div>
+                <button class="delete-btn" onclick="event.stopPropagation(); deleteHistoryItem(${index})">✖</button>
+            </div>
+        `).join('');
+    }
+
+    // ============ بارگذاری از تاریخچه ============
+    function loadFromHistory(index) {
+        const item = history[index];
+        document.getElementById('prompt').value = item.prompt;
+        currentImageUrl = item.url;
+        document.getElementById('resultImg').src = item.url;
+        document.getElementById('result').style.display = 'block';
+        currentPrompt = item.prompt;
+    }
+
+    // ============ حذف از تاریخچه ============
+    function deleteHistoryItem(index) {
+        history.splice(index, 1);
+        localStorage.setItem('imageHistory', JSON.stringify(history));
+        renderHistory();
+    }
+
+    function clearHistory() {
+        if (confirm('آیا از پاک کردن تمام تاریخچه مطمئن هستید؟')) {
+            history = [];
+            localStorage.setItem('imageHistory', JSON.stringify(history));
+            renderHistory();
+        }
+    }
+
+    // ============ علاقه‌مندی‌ها ============
+    function addToFavorites() {
+        if (!currentImageUrl) {
+            showError('اول یک عکس بسازید');
+            return;
+        }
+        // بررسی تکراری نبودن
+        if (favorites.some(fav => fav.url === currentImageUrl)) {
+            showError('این عکس قبلاً به علاقه‌مندی‌ها اضافه شده است');
+            return;
+        }
+        favorites.unshift({
+            url: currentImageUrl,
+            prompt: currentPrompt,
+            date: new Date().toLocaleString('fa-IR')
+        });
+        localStorage.setItem('imageFavorites', JSON.stringify(favorites));
+        renderFavorites();
+        showError('✅ به علاقه‌مندی‌ها اضافه شد', 'success');
+    }
+
+    function renderFavorites() {
+        const grid = document.getElementById('favoritesGrid');
+        if (!favorites.length) {
+            grid.innerHTML = '<div class="empty-message">هنوز عکسی به علاقه‌مندی‌ها اضافه نکرده‌اید</div>';
+            return;
+        }
+        grid.innerHTML = favorites.map((item, index) => `
+            <div class="favorite-item">
+                <img src="${item.url}" alt="علاقه‌مندی" onclick="window.open('${item.url}', '_blank')">
+                <div class="prompt-text">${item.prompt.substring(0, 25)}...</div>
+                <button class="delete-btn" onclick="removeFromFavorites(${index})">✖</button>
+            </div>
+        `).join('');
+    }
+
+    function removeFromFavorites(index) {
+        favorites.splice(index, 1);
+        localStorage.setItem('imageFavorites', JSON.stringify(favorites));
+        renderFavorites();
+    }
+
+    function clearFavorites() {
+        if (confirm('آیا از پاک کردن تمام علاقه‌مندی‌ها مطمئن هستید؟')) {
+            favorites = [];
+            localStorage.setItem('imageFavorites', JSON.stringify(favorites));
+            renderFavorites();
+        }
+    }
+
+    // ============ دانلود با فرمت‌های مختلف ============
+    async function downloadImage(format) {
+        if (!currentImageUrl) {
+            showError('اول یک عکس بسازید');
+            return;
+        }
+        try {
+            const response = await fetch(currentImageUrl);
+            const blob = await response.blob();
+            let mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
+            let extension = format === 'png' ? 'png' : 'jpg';
+            const convertedBlob = new Blob([blob], { type: mimeType });
+            const link = document.createElement('a');
+            link.download = `ai-image-${Date.now()}.${extension}`;
+            link.href = URL.createObjectURL(convertedBlob);
+            link.click();
+            URL.revokeObjectURL(link.href);
+        } catch(e) {
+            // اگر fetch مشکل داشت، مستقیماً لینک را باز کن
+            const link = document.createElement('a');
+            link.download = `ai-image-${Date.now()}.jpg`;
+            link.href = currentImageUrl;
+            link.target = '_blank';
+            link.click();
+        }
+    }
+
+    // ============ اشتراک‌گذاری ============
+    async function shareImage() {
+        if (!currentImageUrl) {
+            showError('اول یک عکس بسازید');
+            return;
+        }
+        if (navigator.share) {
+            try {
+                const response = await fetch(currentImageUrl);
+                const blob = await response.blob();
+                const file = new File([blob], 'image.jpg', { type: 'image/jpeg' });
+                await navigator.share({
+                    title: 'عکس ساخته شده با هوش مصنوعی',
+                    text: currentPrompt,
+                    files: [file]
+                });
+            } catch(e) {
+                // fallback: کپی لینک
+                navigator.clipboard.writeText(currentImageUrl);
+                showError('لینک عکس در کلیپبورد کپی شد');
+            }
+        } else {
+            navigator.clipboard.writeText(currentImageUrl);
+            showError('لینک عکس در کلیپبورد کپی شد');
+        }
+    }
+
+    // ============ پیشنهادات ============
+    function renderSuggestions() {
+        const grid = document.getElementById('suggestionsGrid');
+        grid.innerHTML = kdramaPrompts.map(prompt => `
+            <button class="suggestion-btn" onclick="useSuggestion('${prompt.replace(/'/g, "\\'")}')">${prompt.substring(0, 25)}...</button>
+        `).join('');
+    }
+
+    function useSuggestion(prompt) {
+        document.getElementById('prompt').value = prompt;
+        generateImage();
+    }
+
+    // ============ تم (حالت شب/روز) ============
+    function toggleTheme() {
+        const body = document.body;
+        const btn = document.querySelector('.theme-toggle');
+        if (body.classList.contains('dark')) {
+            body.classList.remove('dark');
+            body.classList.add('light');
+            btn.innerHTML = '🌙 حالت تاریک';
+        } else {
+            body.classList.remove('light');
+            body.classList.add('dark');
+            btn.innerHTML = '☀️ حالت روشن';
+        }
+    }
+
+    // ============ نمایش خطا ============
+    function showError(message, type = 'error') {
+        const errorDiv = document.getElementById('error');
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 3000);
+    }
+
+    // ============ مقداردهی اولیه ============
+    document.getElementById('generateBtn').addEventListener('click', generateImage);
+    document.getElementById('downloadJpgBtn').addEventListener('click', () => downloadImage('jpg'));
+    document.getElementById('downloadPngBtn').addEventListener('click', () => downloadImage('png'));
+    document.getElementById('shareBtn').addEventListener('click', shareImage);
+    document.getElementById('favoriteBtn').addEventListener('click', addToFavorites);
+    
+    // Enter key
+    document.getElementById('prompt').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            generateImage();
+        }
+    });
+
+    // مقداردهی اولیه تم
+    document.body.classList.add('dark');
+    renderSuggestions();
+    renderHistory();
+    renderFavorites();
+</script>
+</body>
+</html>
